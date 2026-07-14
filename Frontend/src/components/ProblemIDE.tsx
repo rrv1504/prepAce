@@ -44,6 +44,8 @@ const STARTERS: Record<Lang, (fn: string) => string> = {
   c: (_fn) => `int* solve(int* nums, int numsSize, int target, int* returnSize) {\n    int* result = malloc(2 * sizeof(int));\n    *returnSize = 0;\n    // Your solution here\n    return result;\n}`,
 }
 
+const EMPTY_SUBMISSIONS: CodeSubmission[] = []
+
 const diffColors: Record<string, { color: string; bg: string }> = {
   Easy: { color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
   Medium: { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
@@ -237,7 +239,7 @@ export default function ProblemIDE({ problem, onBack, showBack = true, onNext, t
   const consoleStartY = useRef(0)
   const consoleStartH = useRef(0)
 
-  const submissions = codeSubmissions[problemId] ?? []
+  const submissions = codeSubmissions[problemId] ?? EMPTY_SUBMISSIONS
 
   // Stopwatch tick
   useEffect(() => {
@@ -876,13 +878,18 @@ export default function ProblemIDE({ problem, onBack, showBack = true, onNext, t
               value={code}
               onChange={e => setCode(e.target.value)}
               spellCheck={false}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
               className="absolute inset-0 w-full h-full resize-none outline-none"
               style={{
                 paddingLeft: 52, paddingRight: 16, paddingTop: 16, paddingBottom: 16,
                 background: 'transparent', color: editorDark ? '#e6edf3' : '#1f2937',
                 fontFamily: 'JetBrains Mono, monospace', fontSize: 13, lineHeight: '1.6rem',
-                caretColor: '#6366f1', tabSize: 4,
+                caretColor: '#6366f1', tabSize: 4, zIndex: 1, pointerEvents: 'auto',
               }}
+              onPointerDown={e => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
               onKeyDown={e => {
                 if (e.key === 'Tab') {
                   e.preventDefault()
