@@ -55,7 +55,7 @@ const executeCodeInDocker = (language, folderPath, input = "", timeoutMs = DEFAU
       return reject(err.message);
     }
 
-    const dockerProcess = spawn("docker", dockerArgs);
+    const dockerProcess = spawn("/usr/bin/docker", dockerArgs);
     let stdout = "";
     let stderr = "";
     let settled = false;
