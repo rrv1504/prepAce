@@ -1,0 +1,11 @@
+{
+  "name": "prepace-final",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n BACKEND,FRONTEND -c blue,green \"npm run dev --prefix Backend\" \"npm run dev --prefix Frontend\"",
+    "install:all": "npm install --prefix Backend && npm install --prefix Frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
+}

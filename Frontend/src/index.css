@@ -1,0 +1,255 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
+}
+
+:root {
+  --background: #06070d;
+  --foreground: #e8eaf0;
+  --card: #0d0f1a;
+  --card-foreground: #e8eaf0;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #1a1d2e;
+  --secondary-foreground: #a8abbe;
+  --muted: #131527;
+  --muted-foreground: #6b7280;
+  --accent: #8b5cf6;
+  --accent-foreground: #ffffff;
+  --border: rgba(99, 102, 241, 0.12);
+  --ring: #6366f1;
+  --radius: 10px;
+
+  --gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6);
+  --gradient-hero: linear-gradient(135deg, #06070d 0%, #0d0f2a 50%, #06070d 100%);
+  --glow-primary: 0 0 40px rgba(99, 102, 241, 0.3);
+}
+
+.dark {
+  --background: #06070d;
+  --foreground: #e8eaf0;
+  --card: #0d0f1a;
+  --card-foreground: #e8eaf0;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #1a1d2e;
+  --secondary-foreground: #a8abbe;
+  --muted: #131527;
+  --muted-foreground: #6b7280;
+  --accent: #8b5cf6;
+  --accent-foreground: #ffffff;
+  --border: rgba(99, 102, 241, 0.12);
+  --ring: #6366f1;
+}
+
+.light {
+  --background: #f4f5fa;
+  --foreground: #0d0f1a;
+  --card: #ffffff;
+  --card-foreground: #0d0f1a;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #eef0f8;
+  --secondary-foreground: #4b5170;
+  --muted: #eef0f8;
+  --muted-foreground: #5b6280;
+  --accent: #8b5cf6;
+  --accent-foreground: #ffffff;
+  --border: rgba(99, 102, 241, 0.18);
+  --ring: #6366f1;
+  --gradient-hero: linear-gradient(135deg, #f0f2ff 0%, #e8ecff 50%, #f4f5fa 100%);
+}
+
+/* Light mode overrides for glass components */
+.light .glass {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.15) !important;
+}
+
+.light .gradient-hero-bg {
+  background: var(--gradient-hero);
+}
+
+/* Fix native select dropdown colors in dark mode */
+select {
+  color-scheme: dark;
+}
+.light select {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
+}
+
+/* ── Rich question HTML content ─────────────────────────────────────────────── */
+.rich-question {
+  line-height: 1.7;
+  font-size: 15px;
+}
+.rich-question p { margin: 0 0 8px; }
+.rich-question p:last-child { margin-bottom: 0; }
+.rich-question strong { font-weight: 700; }
+.rich-question em { font-style: italic; }
+.rich-question code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #a5b4fc;
+}
+.light .rich-question code {
+  background: rgba(99, 102, 241, 0.1);
+  color: #4f46e5;
+}
+.rich-question pre {
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 10px 0;
+}
+.rich-question pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+.rich-question table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8px 0;
+  font-size: 13px;
+}
+.rich-question th,
+.rich-question td {
+  padding: 6px 12px;
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  text-align: left;
+}
+.rich-question th {
+  background: rgba(99, 102, 241, 0.1);
+  font-weight: 600;
+}
+.light .rich-question th {
+  background: rgba(99, 102, 241, 0.08);
+}
+.rich-question ul,
+.rich-question ol {
+  padding-left: 20px;
+  margin: 6px 0;
+}
+.rich-question li { margin: 3px 0; }
+.rich-question div { max-width: 100%; }
+/* Ensure inline styles work in both themes */
+.light .rich-question [style*="color:rgba(255,255,255"] {
+  color: rgba(0,0,0,0.5) !important;
+}
+.light .rich-question [style*="color: rgba(255,255,255"] {
+  color: rgba(0,0,0,0.5) !important;
+}
+/* Dark bg blocks still render correctly in light mode */
+.light .rich-question [style*="background:rgba(15,15,30"],
+.light .rich-question [style*="background:rgba(30,30,60"],
+.light .rich-question [style*="background: rgba(15,15,30"],
+.light .rich-question [style*="background: rgba(30,30,60"] {
+  background: rgba(99, 102, 241, 0.05) !important;
+  border-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+.glass {
+  background: rgba(13, 15, 26, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glow {
+  box-shadow: var(--glow-primary);
+}
+
+.mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.5); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--muted) 25%, rgba(99,102,241,0.08) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.transition-all-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}

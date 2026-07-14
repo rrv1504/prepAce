@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Code Execution API</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-label="Code runner">
+        <header class="topbar">
+          <div>
+            <h1>Code Runner</h1>
+            <p>Run C, C++, Java, and JavaScript with custom input.</p>
+          </div>
+          <button id="runButton" class="run-button" type="button">
+            <span class="run-icon" aria-hidden="true">▶</span>
+            Run
+          </button>
+        </header>
+
+        <div class="controls">
+          <label class="field">
+            <span>Language</span>
+            <select id="languageSelect">
+              <option value="cpp">C++ / CPP</option>
+              <option value="c">C</option>
+              <option value="java">Java</option>
+              <option value="javascript">JavaScript</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Sample</span>
+            <select id="sampleSelect">
+              <option value="hello">Hello world</option>
+              <option value="input">Reads input</option>
+              <option value="compile-error">Compile error</option>
+              <option value="runtime-error">Runtime error</option>
+              <option value="timeout">Timeout</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="editor-grid">
+          <label class="panel editor-panel">
+            <span class="panel-title">Code</span>
+            <textarea id="codeEditor" spellcheck="false"></textarea>
+          </label>
+
+          <div class="side-column">
+            <label class="panel input-panel">
+              <span class="panel-title">Custom Input</span>
+              <textarea id="inputEditor" spellcheck="false" placeholder="Input passed to stdin"></textarea>
+            </label>
+
+            <section class="panel result-panel" aria-live="polite">
+              <div class="result-heading">
+                <span class="panel-title">Result</span>
+                <span id="statusBadge" class="status-badge idle">Idle</span>
+              </div>
+
+              <dl class="metrics">
+                <div>
+                  <dt>Time</dt>
+                  <dd id="timeMetric">-</dd>
+                </div>
+                <div>
+                  <dt>Exit</dt>
+                  <dd id="exitMetric">-</dd>
+                </div>
+              </dl>
+
+              <pre id="outputBox" class="output-box">Run code to see output.</pre>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
