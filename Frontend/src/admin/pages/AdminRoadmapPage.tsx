@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { Archive, Bot, ChevronDown, ChevronRight, Copy, Eye, GripVertical, Layers, Pencil, Plus, Save, Sparkles, Trash2, X } from 'lucide-react'
 import { useAppContext, type MockQuestion, type QuestionType, type StudyRoadmap } from '../../context/AppContext'
 import RichTextEditor from '../../components/RichTextEditor'
+import { aiService, roadmapService } from '../../lib/services'
+import { normalizeId } from '../../lib/api'
 
 type Difficulty = 'Easy' | 'Medium' | 'Hard'
 type Status = 'pending' | 'in-progress' | 'done'
@@ -85,6 +87,48 @@ function localQuizQuestions(module: RoadmapModule) {
   const total = Math.max(3, Math.min(12, Object.values(module.quiz.distribution).reduce((sum, value) => sum + Number(value || 0), 0)))
   const types = ['MCQ', 'Coding', 'Output Prediction', 'Debugging', 'Fill in blanks', 'True False', 'Scenario Based']
   return Array.from({ length: total }, (_, i) => makeQuestion(module.title, module.quiz.difficulty, types[i % types.length]))
+}
+
+function normalizeRoadmapModule(input: Partial<RoadmapModule>, index: number, form: BuilderForm): RoadmapModule {
+  const fallback = makeModule(index, form.difficulty, form.companyName || 'Target Company', form.role || 'SDE')
+  return {
+    ...fallback,
+    ...input,
+    id: input.id || (input as any)._id || uid('module'),
+    title: input.title || fallback.title,
+    difficulty: (input.difficulty as Difficulty) || form.difficulty,
+    estimatedHours: Number(input.estimatedHours ?? fallback.estimatedHours),
+    learningOutcomes: Array.isArray(input.learningOutcomes) ? input.learningOutcomes : fallback.learningOutcomes,
+    prerequisites: Array.isArray(input.prerequisites) ? input.prerequisites : fallback.prerequisites,
+    resources: Array.isArray(input.resources)
+      ? input.resources.map((resource: any) => ({
+          ...resource,
+          id: resource.id || resource._id || uid('resource'),
+        }))
+      : fallback.resources,
+    dailyTasks: Array.isArray(input.dailyTasks)
+      ? input.dailyTasks.map((task: any, taskIndex: number) => ({
+          ...task,
+          id: task.id || task._id || uid('task'),
+          dayNumber: Number(task.dayNumber || taskIndex + 1),
+          taskName: task.taskName || task.name || task.title || `Task ${taskIndex + 1}`,
+          description: task.description || '',
+          estimatedMinutes: Number(task.estimatedMinutes || 90),
+          status: task.status || 'pending',
+        }))
+      : fallback.dailyTasks,
+    quiz: {
+      ...fallback.quiz,
+      ...(input.quiz || {}),
+      questions: Array.isArray(input.quiz?.questions)
+        ? input.quiz.questions.map((question: any) => ({
+            ...makeQuestion(question.topic || input.title || fallback.title, question.difficulty || form.difficulty, question.questionType || 'MCQ'),
+            ...question,
+            id: question.id || question._id || uid('question'),
+          }))
+        : fallback.quiz.questions,
+    },
+  }
 }
 
 function fromMockQuestion(question: MockQuestion, difficulty: Difficulty): QuizQuestion {
@@ -453,12 +497,11 @@ export default function AdminRoadmapPage() {
   async function generateRoadmap() {
     setGenerating(true)
     try {
-      const token = sessionStorage.getItem('admin_token')
-      const res = await fetch('http://localhost:5000/api/ai/roadmap', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(form) })
-      if (!res.ok) throw new Error('AI unavailable')
-      const data = await res.json()
-      setModules((data.roadmap?.modules ?? localModules(form)).map((m: RoadmapModule, index: number) => ({ ...makeModule(index, form.difficulty), ...m, id: m.id || uid('module') })))
-    } catch {
+      const result: any = await aiService.generateRoadmap(form)
+      const generated = result.roadmap?.modules || result.modules || []
+      setModules((generated.length ? generated : localModules(form)).map((m: RoadmapModule, index: number) => normalizeRoadmapModule(m, index, form)))
+    } catch (error) {
+      console.warn('AI roadmap generation failed, using local roadmap', error)
       setModules(localModules(form))
     } finally {
       setGenerating(false)
@@ -467,18 +510,17 @@ export default function AdminRoadmapPage() {
 
   async function generateQuiz(module: RoadmapModule) {
     try {
-      const token = sessionStorage.getItem('admin_token')
-      const res = await fetch('http://localhost:5000/api/ai/quiz', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ ...module.quiz, topic: module.title }) })
-      if (!res.ok) throw new Error('AI unavailable')
-      const data = await res.json()
-      const questions = (data.questions || localQuizQuestions(module)).map((q: QuizQuestion) => ({ ...makeQuestion(module.title, module.quiz.difficulty), ...q, id: q.id || uid('question') }))
+      const result: any = await aiService.generateQuiz({ ...module.quiz, topic: module.title })
+      const generated = result.questions || result.quiz?.questions || []
+      const questions = (generated.length ? generated : localQuizQuestions(module)).map((q: QuizQuestion) => ({ ...makeQuestion(module.title, module.quiz.difficulty), ...q, id: q.id || (q as any)._id || uid('question') }))
       updateModule(module.id, { ...module, quiz: { ...module.quiz, questions } })
-    } catch {
+    } catch (error) {
+      console.warn('AI quiz generation failed, using local questions', error)
       updateModule(module.id, { ...module, quiz: { ...module.quiz, questions: localQuizQuestions(module) } })
     }
   }
 
-  function saveRoadmap(status: 'draft' | 'published') {
+  async function saveRoadmap(status: 'draft' | 'published') {
     const roadmap: StudyRoadmap = {
       id: editingRoadmapId || uid(status),
       title,
@@ -499,12 +541,31 @@ export default function AdminRoadmapPage() {
       additionalNotes: form.additionalNotes,
       modules,
     }
-    setRoadmaps(editingRoadmapId ? roadmaps.map(r => r.id === editingRoadmapId ? roadmap : r) : [roadmap, ...roadmaps])
-    setEditingRoadmapId(null); setBuilderOpen(false)
+    const payload = {
+      ...roadmap,
+      modules: modules.map((module, index) => normalizeRoadmapModule(module, index, form)),
+    }
+    try {
+      const saved: any = editingRoadmapId
+        ? await roadmapService.update(editingRoadmapId, payload)
+        : await roadmapService.create(payload)
+      const normalized = { ...(normalizeId(saved as any) as StudyRoadmap), __synced: true } as any
+      setRoadmaps(editingRoadmapId ? roadmaps.map(r => r.id === editingRoadmapId ? normalized : r) : [normalized, ...roadmaps])
+      setEditingRoadmapId(null)
+      setBuilderOpen(false)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to save roadmap')
+    }
   }
 
-  function archiveRoadmap(id: string) {
-    setRoadmaps(roadmaps.map(r => r.id === id ? { ...r, status: 'archived' } : r))
+  async function archiveRoadmap(id: string) {
+    try {
+      const saved = await roadmapService.update(id, { status: 'archived' })
+      const normalized = { ...(normalizeId(saved as any) as StudyRoadmap), __synced: true } as any
+      setRoadmaps(roadmaps.map(r => r.id === id ? normalized : r))
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to archive roadmap')
+    }
   }
 
   function reorder(dropIndex: number) {

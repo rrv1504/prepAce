@@ -200,6 +200,21 @@ export const userService = {
   delete: (id: string) => api.delete(`/users/${id}`),
 };
 
+export const notificationService = {
+  listAll: () => loadCollection<any>("/notifications"),
+  create: (data: {
+    title: string;
+    body: string;
+    user?: string;
+    type?: string;
+    icon?: string;
+    iconColor?: string;
+  }) => api.post("/notifications", data),
+  update: (id: string, data: Record<string, unknown>) =>
+    api.patch(`/notifications/${id}`, data),
+  delete: (id: string) => api.delete(`/notifications/${id}`),
+};
+
 // ── AI Routes ─────────────────────────────────────────────────────────────────
 export const aiService = {
   generateQuiz: (payload: any) => api.post("/ai/quiz", payload),
@@ -220,5 +235,6 @@ export default {
   code: codeService,
   auth: authService,
   user: userService,
+  notification: notificationService,
   ai: aiService,
 };

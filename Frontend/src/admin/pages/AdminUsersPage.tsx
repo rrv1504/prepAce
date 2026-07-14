@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAppContext, type AdminUser } from "../../context/AppContext";
-import { userService } from "../../lib/services";
+import { notificationService, userService } from "../../lib/services";
 import { normalizeList } from "../../lib/api";
 import {
   Search,
@@ -43,6 +43,32 @@ function UserDetailPanel({
   const [notifMsg, setNotifMsg] = useState("");
   const [showNotif, setShowNotif] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState("");
+
+  async function sendNotification() {
+    if (!notifMsg.trim()) return;
+    setSending(true);
+    setSendError("");
+    try {
+      await notificationService.create({
+        title: "Message from admin",
+        body: notifMsg.trim(),
+        user: user.id,
+        type: "admin",
+        icon: "Bell",
+        iconColor: "#6366f1",
+      });
+      setSent(true);
+      setShowNotif(false);
+      setNotifMsg("");
+      setTimeout(() => setSent(false), 3000);
+    } catch (error) {
+      setSendError(error instanceof Error ? error.message : "Failed to send notification");
+    } finally {
+      setSending(false);
+    }
+  }
 
   return (
     <div
@@ -391,6 +417,11 @@ function UserDetailPanel({
               </div>
             ) : showNotif ? (
               <div className="space-y-2">
+                {sendError && (
+                  <div className="px-3 py-2 rounded-lg text-xs" style={{ background: "rgba(239,68,68,0.1)", color: "#f87171" }}>
+                    {sendError}
+                  </div>
+                )}
                 <textarea
                   value={notifMsg}
                   onChange={(e) => setNotifMsg(e.target.value)}
@@ -405,16 +436,15 @@ function UserDetailPanel({
                 />
                 <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      setSent(true);
-                      setTimeout(() => setSent(false), 3000);
-                    }}
+                    disabled={sending || !notifMsg.trim()}
+                    onClick={sendNotification}
                     className="flex-1 py-2 rounded-xl text-sm font-bold text-white"
                     style={{
                       background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+                      opacity: sending || !notifMsg.trim() ? 0.6 : 1,
                     }}
                   >
-                    Send
+                    {sending ? "Sending..." : "Send"}
                   </button>
                   <button
                     onClick={() => setShowNotif(false)}
