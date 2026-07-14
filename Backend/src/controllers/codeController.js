@@ -1,11 +1,18 @@
 const asyncHandler = require('../utils/asyncHandler')
 const codeExecutionService = require('../services/codeExecutionService')
+const { isJudgeProxyEnabled, proxyCodeRequest } = require('../services/judgeProxyService')
 const { sendSuccess } = require('../utils/apiResponse')
 const { requireNonEmptyArray } = require('../utils/validation')
 
 const runCode = asyncHandler(async (req, res) => {
-  const result = await codeExecutionService.runCode(req.body)
-  console.log('Code executed successfully:', result)
+  const result = isJudgeProxyEnabled()
+    ? await proxyCodeRequest({
+        path: '/code/run',
+        body: req.body,
+        authorization: req.headers.authorization,
+      })
+    : await codeExecutionService.runCode(req.body)
+
   sendSuccess(res, {
     message: 'Code executed',
     data: result,
@@ -15,16 +22,21 @@ const runCode = asyncHandler(async (req, res) => {
       success: true,
     },
   })
-
-  
 })
 
 const judgeCode = asyncHandler(async (req, res) => {
   requireNonEmptyArray(req.body.testCases, 'testCases')
-  const result = await codeExecutionService.judgeCode({
-    ...req.body,
-    user: req.user,
-  })
+  const result = isJudgeProxyEnabled()
+    ? await proxyCodeRequest({
+        path: '/code/judge',
+        body: req.body,
+        authorization: req.headers.authorization,
+      })
+    : await codeExecutionService.judgeCode({
+        ...req.body,
+        user: req.user,
+      })
+
   sendSuccess(res, {
     message: 'Code judged',
     data: result,
